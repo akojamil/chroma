@@ -367,7 +367,15 @@ propagate_at_specular_reflector(Photon &p, State &s)
 {
     float incident_angle = get_theta(s.surface_normal, -p.direction);
     float3 incident_plane_normal = cross(p.direction, s.surface_normal);
-    incident_plane_normal /= norm(incident_plane_normal);
+    float incident_plane_normal_length = norm(incident_plane_normal);
+
+    // Photons at normal incidence do not have a unique plane of incidence,
+    // so we have to pick the plane normal to be the polarization vector
+    // to get the correct logic below
+    if (incident_plane_normal_length < 1e-6f)
+        incident_plane_normal = p.polarization;
+    else
+        incident_plane_normal /= incident_plane_normal_length;
 
     p.direction = rotate(s.surface_normal, incident_angle, incident_plane_normal);
 
